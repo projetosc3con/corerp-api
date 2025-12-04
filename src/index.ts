@@ -2,12 +2,27 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: '.env.local' });
+import { authenticate } from './middlewares/authenticate';
+import userRoutes from './routes/users';
+import roleRoutes from './routes/roles';
+
+dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 
-app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
+// Rotas protegidas
+app.use('/users', authenticate, userRoutes);
+app.use('/roles', authenticate, roleRoutes);
+
+// Rota de status
+app.get('/', (_req, res) => {
+  res.send('🔥 API rodando localmente!');
+});
+
+app.listen(port, () => {
+  console.log(`✅ Servidor local rodando em http://localhost:${port}`);
 });
