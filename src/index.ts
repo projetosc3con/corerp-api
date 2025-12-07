@@ -15,8 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 // Rotas protegidas
-app.use('/users', authenticate, userRoutes);
-app.use('/roles', authenticate, roleRoutes);
+app.use('/users', userRoutes);
+app.use('/roles', roleRoutes);
 
 // Rota de status
 app.get('/', (_req, res) => {
