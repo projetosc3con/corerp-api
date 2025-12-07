@@ -38,6 +38,27 @@ router.get('/', authenticate, authorize('roles.read'), async (_req, res) => {
   }
 });
 
+router.get('/:id', authenticate, authorize('roles.read'), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const doc = await admin.firestore().collection('roles').doc(id).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Role não encontrada' });
+    }
+
+    const role: Role = {
+      id: doc.id,
+      ...(doc.data() as Omit<Role, 'id'>),
+    };
+
+    res.json(role);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar role', details: error });
+  }
+});
+
 // Atualizar role
 router.put('/:id', authenticate, authorize('roles.update'), async (req, res) => {
   const { id } = req.params;
