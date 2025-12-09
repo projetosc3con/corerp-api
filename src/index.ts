@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { authenticate } from './middlewares/authenticate';
 import userRoutes from './routes/users';
 import roleRoutes from './routes/roles';
+import clientRoutes from './routes/clientes';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 // Rotas protegidas
 app.use('/users', userRoutes);
 app.use('/roles', roleRoutes);
+app.use('/clientes', clientRoutes);
 
 // Rota de status
 app.get('/', (_req, res) => {

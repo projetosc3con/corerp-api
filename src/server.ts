@@ -2,9 +2,9 @@ import express from 'express';
 import serverless from 'serverless-http';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
 import rolesRoutes from './routes/roles';
-import usersRoutes from './routes/users'; // caso exista
+import usersRoutes from './routes/users'; 
+import clientRoutes from './routes/clientes';
 
 dotenv.config();
 
@@ -14,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/roles', rolesRoutes);
-app.use('/users', usersRoutes); // se tiver
+app.use('/users', usersRoutes);
+app.use('/clientes', clientRoutes);
 
-export const handler = serverless(app); // <- importante
+export const handler = serverless(app); 
