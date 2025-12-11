@@ -11,6 +11,10 @@ const firestore = admin.firestore();
 // Criar novo usuário
 router.post('/', authenticate, authorize('users.create'), async (req, res) => {
   const { email, password, displayName, role } = req.body;
+
+  // URL da imagem de perfil padrão
+  const defaultPhotoURL = 'https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg';
+
   try {
     if (role) {
       const roleDoc = await firestore.collection('roles').doc(role).get();
@@ -19,15 +23,29 @@ router.post('/', authenticate, authorize('users.create'), async (req, res) => {
       }
     }
 
-    const user = await admin.auth().createUser({ email, password, displayName });
+    const user = await admin.auth().createUser({
+      email,
+      password,
+      displayName,
+      photoURL: defaultPhotoURL, // <-- adiciona foto padrão
+    });
+
     if (role) {
       await admin.auth().setCustomUserClaims(user.uid, { role });
     }
-    res.status(201).json({ uid: user.uid, email: user.email, displayName: user.displayName, role });
+
+    res.status(201).json({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      role
+    });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar usuário', details: error });
   }
 });
+
 
 // Listar todos os usuários (limite de 1000)
 router.get('/', authenticate, authorize('users.read'), async (req, res) => {

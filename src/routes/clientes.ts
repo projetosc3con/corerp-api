@@ -19,7 +19,6 @@ router.post('/', async (req, res) => {
       observacoes
     } = req.body;
 
-    // Validação básica
     if (!nome || !cpfCnpj || !email ) {
       return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
     }
@@ -35,7 +34,6 @@ router.post('/', async (req, res) => {
       observacoes: observacoes ?? ''
     };
 
-    // Insere o cliente no banco de dados (ajuste conforme seu ORM/banco)
     await firestore.collection('clientes').doc(email).set(novoCliente);
 
     return res.status(201).json({ message: 'Cliente cadastrado com sucesso!', cliente: novoCliente });
