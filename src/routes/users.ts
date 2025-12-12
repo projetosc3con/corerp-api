@@ -10,11 +10,7 @@ const firestore = admin.firestore();
 
 // Criar novo usuário
 router.post('/', authenticate, authorize('users.create'), async (req, res) => {
-  const { email, password, displayName, role } = req.body;
-
-  // URL da imagem de perfil padrão
-  const defaultPhotoURL = 'https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg';
-
+  const { email, password, displayName, role, photoURL } = req.body;
   try {
     if (role) {
       const roleDoc = await firestore.collection('roles').doc(role).get();
@@ -27,7 +23,7 @@ router.post('/', authenticate, authorize('users.create'), async (req, res) => {
       email,
       password,
       displayName,
-      photoURL: defaultPhotoURL, // <-- adiciona foto padrão
+      photoURL
     });
 
     if (role) {
@@ -55,7 +51,8 @@ router.get('/', authenticate, authorize('users.read'), async (req, res) => {
       uid: u.uid,
       email: u.email,
       displayName: u.displayName,
-      role: u.customClaims?.role || 'user',
+      role: u.customClaims?.role || 'cliente',
+      photoURL: u.photoURL
     }));
     res.json(users);
   } catch (error) {
@@ -63,29 +60,28 @@ router.get('/', authenticate, authorize('users.read'), async (req, res) => {
   }
 });
 
-// Buscar usuário por displayName
+// Buscar usuário por UID
 router.get('/search', authenticate, authorize('users.read'), async (req, res) => {
-    const { displayName } = req.query;
-    if (!displayName || typeof displayName !== 'string') {
-        return res.status(400).json({ error: 'displayName é obrigatório e deve ser uma string' });
-    }
+  const { uid } = req.query;
+  if (!uid || typeof uid !== 'string') {
+    return res.status(400).json({ error: 'uid é obrigatório e deve ser uma string' });
+  }
 
-    try {
-        const list = await admin.auth().listUsers(1000);
-        const filtered = list.users.filter((u) =>
-            u.displayName?.toLowerCase().includes(displayName.toLowerCase())
-        ).map((u) => ({
-            uid: u.uid,
-            email: u.email,
-            displayName: u.displayName,
-            role: u.customClaims?.role || 'user',
-        }));
+  try {
+    const userRecord = await admin.auth().getUser(uid);
 
+    const user = {
+      uid: userRecord.uid,
+      email: userRecord.email,
+      displayName: userRecord.displayName,
+      role: userRecord.customClaims?.role || 'user',
+      photoURL: userRecord.photoURL || null,
+    };
 
-        res.json(filtered);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar usuários', details: error });
-    }
+    res.json(user);
+  } catch (error) {
+    res.status(404).json({ error: 'Usuário não encontrado', details: error });
+  }
 });
 
 // Atualizar usuário
