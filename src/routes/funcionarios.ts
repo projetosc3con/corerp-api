@@ -28,10 +28,7 @@ router.post('/', authenticate, authorize('funcionarios.create'), async (req, res
 router.get('/', authenticate, authorize('funcionarios.read'), async (_req, res) => {
   try {
     const snapshot = await collection.get();
-    const funcionarios = snapshot.docs.map(doc => ({
-      uid: doc.id,
-      ...doc.data(),
-    })) as Funcionario[];
+    const funcionarios = snapshot.docs.map(doc => doc.data() as Funcionario[]);
     res.json(funcionarios);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar funcionários', details: error });
