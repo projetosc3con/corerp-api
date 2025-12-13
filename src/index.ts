@@ -6,6 +6,7 @@ import { authenticate } from './middlewares/authenticate';
 import userRoutes from './routes/users';
 import roleRoutes from './routes/roles';
 import clientRoutes from './routes/clientes';
+import funcionariosRoutes from './routes/funcionarios';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/users', userRoutes);
 app.use('/roles', roleRoutes);
 app.use('/clientes', clientRoutes);
+app.use('/funcionarios', funcionariosRoutes);
 
 // Rota de status
 app.get('/', (_req, res) => {

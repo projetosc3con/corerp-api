@@ -5,6 +5,7 @@ import cors from 'cors';
 import rolesRoutes from './routes/roles';
 import usersRoutes from './routes/users'; 
 import clientRoutes from './routes/clientes';
+import funcionariosRoutes from './routes/funcionarios';
 
 dotenv.config();
 
@@ -16,5 +17,6 @@ app.use(express.json());
 app.use('/roles', rolesRoutes);
 app.use('/users', usersRoutes);
 app.use('/clientes', clientRoutes);
+app.use('/funcionarios', funcionariosRoutes);
 
-export const handler = serverless(app); 
+export default app; 
