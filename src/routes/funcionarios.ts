@@ -17,8 +17,8 @@ router.post('/', authenticate, authorize('funcionarios.create'), async (req, res
   }
 
   try {
-    const docRef = await collection.add(data);
-    res.status(201).json({ id: docRef.id });
+    await collection.doc(data.email).set(data);
+    res.status(201).json({ message: 'Funcionário criado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar funcionário', details: error });
   }
