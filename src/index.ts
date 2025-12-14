@@ -7,6 +7,7 @@ import userRoutes from './routes/users';
 import roleRoutes from './routes/roles';
 import clientRoutes from './routes/clientes';
 import funcionariosRoutes from './routes/funcionarios';
+import categoriasRoutes from './routes/categorias';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use('/users', userRoutes);
 app.use('/roles', roleRoutes);
 app.use('/clientes', clientRoutes);
 app.use('/funcionarios', funcionariosRoutes);
+app.use('/categorias', categoriasRoutes);
 
 // Rota de status
 app.get('/', (_req, res) => {

@@ -6,6 +6,7 @@ import rolesRoutes from './routes/roles';
 import usersRoutes from './routes/users'; 
 import clientRoutes from './routes/clientes';
 import funcionariosRoutes from './routes/funcionarios';
+import categoriasRoutes from './routes/categorias';
 
 dotenv.config();
 
@@ -18,5 +19,6 @@ app.use('/roles', rolesRoutes);
 app.use('/users', usersRoutes);
 app.use('/clientes', clientRoutes);
 app.use('/funcionarios', funcionariosRoutes);
+app.use('/categorias', categoriasRoutes);
 
 export default app; 
