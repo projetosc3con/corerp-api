@@ -38,7 +38,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Atualizar categoria
+//get by id
+router.get('/:id', authenticate, authorize('fornecedores.read'), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const doc = await collection.doc(id).get();
+    if (!doc.exists) return res.status(404).json({ error: 'Fornecedor não encontrado' });
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar fornecedor', details: error });
+  }
+});
+
+// Atualizar fornecedor
 router.put('/:id', authenticate, authorize('fornecedores.update'), async (req, res) => {
   const { id } = req.params;
   const data = req.body as Partial<Fornecedor>;
@@ -50,7 +62,7 @@ router.put('/:id', authenticate, authorize('fornecedores.update'), async (req, r
   }
 });
 
-// Deletar categoria
+// Deletar fornecedor
 router.delete('/:id', authenticate, authorize('fornecedores.delete'), async (req, res) => {
   const { id } = req.params;
   try {
