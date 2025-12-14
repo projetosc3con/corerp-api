@@ -1,14 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
-import { authenticate } from './middlewares/authenticate';
 import userRoutes from './routes/users';
 import roleRoutes from './routes/roles';
 import clientRoutes from './routes/clientes';
 import funcionariosRoutes from './routes/funcionarios';
 import categoriasRoutes from './routes/categorias';
 import fornecedoresRoutes from './routes/fornecedores';
+import estoqueRoutes from './routes/produtos';
 
 dotenv.config();
 
@@ -25,6 +24,7 @@ app.use('/clientes', clientRoutes);
 app.use('/funcionarios', funcionariosRoutes);
 app.use('/categorias', categoriasRoutes);
 app.use('/fornecedores', fornecedoresRoutes);
+app.use('/estoque', estoqueRoutes);
 
 // Rota de status
 app.get('/', (_req, res) => {
