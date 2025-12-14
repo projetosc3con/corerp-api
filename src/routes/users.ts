@@ -85,15 +85,20 @@ router.get('/search', authenticate, authorize('users.read'), async (req, res) =>
 });
 
 // Atualizar perfil e UID no cadastro
-router.put('/registrar', authenticate, async (req, res) => {
-    const { uid, role, email } = req.body;
+router.patch('/:uid/role', authenticate, async (req, res) => {
+    const { role, email } = req.body;
+    const { uid } = req.params;
     if (!uid || !role || !email) {
       return res.status(400).json({ error: 'uid, role e email são obrigatórios' });
     }
 
     try {
+      const roleDoc = await firestore.collection('roles').doc(role).get();
+      if (!roleDoc.exists) {
+        return res.status(400).json({ error: `Role '${role}' não existe.` });
+      }
       await admin.auth().setCustomUserClaims(uid, { role });
-      await admin.firestore().collection('funcionarios').doc(email).update(uid);
+      await firestore.collection('funcionarios').doc(email).update({ uid });
       res.json({ message: 'Usuário funcionário atualizado com sucesso' });
     } catch (error) {
       res.status(400).json({ error: 'Erro ao atualizar funcionário', details: error });
