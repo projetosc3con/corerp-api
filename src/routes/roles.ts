@@ -38,7 +38,7 @@ router.get('/', authenticate, authorize('roles.read'), async (_req, res) => {
   }
 });
 
-router.get('/:id', authenticate, authorize('roles.read'), async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
 
   try {
