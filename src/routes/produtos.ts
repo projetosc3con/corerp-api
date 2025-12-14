@@ -18,7 +18,7 @@ router.post('/', authenticate, authorize('estoque.create'), async (req, res) => 
 
   try {
     const ref = await collection.add(data);
-    res.status(201).json({ message: 'Produto criado com sucesso' });
+    res.status(201).json({ message: 'Produto criado com sucesso', id: ref.id });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar produto', details: error });
   }
