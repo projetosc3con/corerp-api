@@ -7,6 +7,7 @@ import usersRoutes from './routes/users';
 import clientRoutes from './routes/clientes';
 import funcionariosRoutes from './routes/funcionarios';
 import categoriasRoutes from './routes/categorias';
+import fornecedoresRoutes from './routes/fornecedores';
 
 dotenv.config();
 
@@ -20,5 +21,6 @@ app.use('/users', usersRoutes);
 app.use('/clientes', clientRoutes);
 app.use('/funcionarios', funcionariosRoutes);
 app.use('/categorias', categoriasRoutes);
+app.use('/fornecedores', fornecedoresRoutes);
 
 export default app; 
