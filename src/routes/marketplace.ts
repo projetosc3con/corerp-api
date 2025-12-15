@@ -10,7 +10,7 @@ const router = Router();
 const collection = admin.firestore().collection('marketplace');
 
 // Obter dados marketplace
-router.patch('/landing', async (req, res) => {
+router.get('/landing', async (req, res) => {
   try {
     const doc = await collection.doc('config').get()
     const data = doc.data() as MarketLanding;
