@@ -62,7 +62,7 @@ router.put('/:id', authenticate, authorize('estoque.update'), async (req, res) =
   }
 });
 
-// Deletar fornecedor
+// Deletar produto
 router.delete('/:id', authenticate, authorize('estoque.delete'), async (req, res) => {
   const { id } = req.params;
   try {
