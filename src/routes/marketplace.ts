@@ -30,3 +30,5 @@ router.put('/landing', authenticate, authorize('marketplace.update'), async (req
     res.status(400).json({ error: 'Erro ao atualizar', details: error });
   }
 });
+
+export default router;
