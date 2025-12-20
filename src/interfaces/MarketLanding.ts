@@ -1,10 +1,11 @@
 import { Categoria } from "./Categoria";
+import { Servico } from "./Servico";
 
 export interface MarketLanding {
     pageTitle: string;
     banners: string[] | null;
     destaques: ProdutoMarketLanding[];
-    servicos?: string[];
+    servicos?: Servico[];
     categorias?: Categoria[];
     tempoBanner: number;
     tempoDestaque: number;

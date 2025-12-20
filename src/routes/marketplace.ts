@@ -5,6 +5,7 @@ import { authorize } from '../middlewares/authorize';
 import { admin } from '../firebase';
 import { MarketLanding } from '../interfaces/MarketLanding';
 import { Categoria } from '../interfaces/Categoria';
+import { Servico } from '../interfaces/Servico';
 
 const router = Router();
 
@@ -22,7 +23,12 @@ router.get('/landing', async (req, res) => {
               ...(doc.data() as Omit<Categoria, 'id'>),
             }));
     
-    res.json({ ...data, categorias: cData });
+    const servSnap = await admin.firestore().collection('servicos').get();
+    const sData: Servico[] = servSnap.docs.map(doc => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Servico, 'id'>)
+    }));
+    res.json({ ...data, categorias: cData, servicos: sData });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao carregar marketplace', details: error });
   }
