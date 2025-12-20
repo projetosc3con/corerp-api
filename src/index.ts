@@ -9,6 +9,7 @@ import categoriasRoutes from './routes/categorias';
 import fornecedoresRoutes from './routes/fornecedores';
 import estoqueRoutes from './routes/produtos';
 import marketRoutes from './routes/marketplace';
+import servicosRoutes from './routes/servicos';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/categorias', categoriasRoutes);
 app.use('/fornecedores', fornecedoresRoutes);
 app.use('/estoque', estoqueRoutes);
 app.use('/market', marketRoutes);
+app.use('/servicos', servicosRoutes);
 
 // Rota de status
 app.get('/', (_req, res) => {
