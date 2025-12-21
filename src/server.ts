@@ -1,5 +1,4 @@
 import express from 'express';
-import serverless from 'serverless-http';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import rolesRoutes from './routes/roles';
@@ -11,6 +10,7 @@ import fornecedoresRoutes from './routes/fornecedores';
 import estoqueRoutes from './routes/produtos';
 import marketRoutes from './routes/marketplace';
 import servicosRoutes from './routes/servicos';
+import petsRoutes from './routes/pets';
 
 dotenv.config();
 
@@ -28,5 +28,6 @@ app.use('/fornecedores', fornecedoresRoutes);
 app.use('/estoque', estoqueRoutes);
 app.use('/market', marketRoutes);
 app.use('/servicos', servicosRoutes);
+app.use('/pets', petsRoutes);
 
 export default app; 

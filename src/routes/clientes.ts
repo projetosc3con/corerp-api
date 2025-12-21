@@ -4,14 +4,14 @@ import { admin } from '../firebase';
 
 const router = Router();
 
-const firestore = admin.firestore();
+const collection = admin.firestore().collection('clientes');
 
 router.post('/', async (req, res) => {
   try {
     const {
       id,
       nome,
-      cpfCnpj,
+      cpf,
       dataNascimento,
       telefone,
       email,
@@ -19,14 +19,14 @@ router.post('/', async (req, res) => {
       observacoes
     } = req.body;
 
-    if (!nome || !cpfCnpj || !email ) {
+    if (!nome || !cpf || !email ) {
       return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
     }
 
     const novoCliente: Cliente = {
       id,
       nome,
-      cpfCnpj,
+      cpf,
       dataNascimento: dataNascimento ?? '',
       telefone: telefone ?? '',
       email,
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
       observacoes: observacoes ?? ''
     };
 
-    await firestore.collection('clientes').doc(email).set(novoCliente);
+    await collection.doc(email).set(novoCliente);
 
     return res.status(201).json({ message: 'Cliente cadastrado com sucesso!', cliente: novoCliente });
   } catch (error) {

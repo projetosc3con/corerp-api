@@ -12,4 +12,5 @@ export interface Pet {
     restricoes?: string;
     microchip?: string;
     idCliente: string;
+    fhoto?: string;
 }
