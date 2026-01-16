@@ -24,7 +24,7 @@ router.post('/', authenticate, authorize('servicos.create'), async (req, res) =>
   }
 });
 
-// Listar produtos (publico)
+// Listar serviços (publico)
 router.get('/', async (req, res) => {
   try {
     const snapshot = await collection.get();
