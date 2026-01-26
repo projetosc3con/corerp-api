@@ -53,6 +53,18 @@ router.get('/', authenticate, authorize('pets.read'), async (req, res) => {
   }
 });
 
+//get by id
+router.get('/:id', authenticate, authorize('pets.read'), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const doc = await collection.doc(id).get();
+    if (!doc.exists) return res.status(404).json({ error: 'Pet não encontrado' });
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar pet', details: error });
+  }
+});
+
 // Atualizar pet
 router.put('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
