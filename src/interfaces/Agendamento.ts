@@ -1,9 +1,9 @@
 export interface Agendamento {
     id?: string;
     cliente: string;
-    photoCliente?: string;
     pet: string;
-    photoPet?: string;
+    clientePhoto?: string;
+    petPhoto?: string;
     horario: string;
     dia: string;
     status: string;

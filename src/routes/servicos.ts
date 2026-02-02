@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
 });
 
 //get by id
-router.get('/:id', authenticate, authorize('servicos.read'), async (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const doc = await collection.doc(id).get();
