@@ -22,7 +22,7 @@ export type ProdutoMarketLanding = {
 export interface AboutUs {
     titleSize: string; // 1rem, 12px, etc...
     contentSize: string; // 1rem, 12px, etc...
-    itens: [{ index: number; title: string; content: string }];
+    itens: { index: number; title: string; content: string }[];
 }
 
 export interface Contact {
