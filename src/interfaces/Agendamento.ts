@@ -6,5 +6,6 @@ export interface Agendamento {
     petPhoto?: string;
     horario: string;
     dia: string;
+    servico: string;
     status: string;
 }

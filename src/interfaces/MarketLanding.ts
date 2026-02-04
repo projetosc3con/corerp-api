@@ -18,3 +18,19 @@ export type ProdutoMarketLanding = {
     categoria: string;
     descricao: string;
 }
+
+export interface AboutUs {
+    titleSize: string; // 1rem, 12px, etc...
+    contentSize: string; // 1rem, 12px, etc...
+    itens: [{ index: number; title: string; content: string }];
+}
+
+export interface Contact {
+    email: string;
+    telefone: string;
+    cep: string;
+    numero: string;
+    horario: string;
+    instagram: string;
+    facebook: string;
+}
