@@ -10,7 +10,7 @@ export function authorize(permission: string) {
 
     try {
       const { data: roleData, error } = await supabase
-        .from('roles')
+        .from('Roles')
         .select('*')
         .eq('id', roleId)
         .single();

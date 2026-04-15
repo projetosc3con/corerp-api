@@ -10,7 +10,7 @@ router.post('/', authenticate, authorize('users.create'), async (req, res) => {
   const { email, password, displayName, role, photoURL } = req.body;
   try {
     if (role) {
-      const { data: roleDoc, error: roleError } = await supabase.from('roles').select('*').eq('id', role).single();
+      const { data: roleDoc, error: roleError } = await supabase.from('Roles').select('*').eq('id', role).single();
       if (roleError || !roleDoc) {
         return res.status(400).json({ error: `Role '${role}' não existe.` });
       }
@@ -91,7 +91,7 @@ router.patch('/:id/role', authenticate, async (req, res) => {
     }
 
     try {
-      const { data: roleDoc, error: roleError } = await supabase.from('roles').select('*').eq('id', role).single();
+      const { data: roleDoc, error: roleError } = await supabase.from('Roles').select('*').eq('id', role).single();
       if (roleError || !roleDoc) {
         return res.status(400).json({ error: `Role '${role}' não existe.` });
       }
@@ -100,7 +100,7 @@ router.patch('/:id/role', authenticate, async (req, res) => {
       if (updateAuthError) throw updateAuthError;
 
       // uid was changed to id in the interfaces/db
-      const { error: updateFuncError } = await supabase.from('funcionarios').update({ id }).eq('email', email);
+      const { error: updateFuncError } = await supabase.from('Funcionarios').update({ id }).eq('email', email);
       if (updateFuncError) throw updateFuncError;
       
       res.json({ message: 'Usuário funcionário atualizado com sucesso' });
@@ -115,7 +115,7 @@ router.put('/:id', authenticate, authorize('users.update'), async (req, res) => 
   const { email, password, displayName, role } = req.body;
   try {
     if (role) {
-      const { data: roleDoc, error: roleError } = await supabase.from('roles').select('*').eq('id', role).single();
+      const { data: roleDoc, error: roleError } = await supabase.from('Roles').select('*').eq('id', role).single();
       if (roleError || !roleDoc) {
         return res.status(400).json({ error: `Role '${role}' não existe.` });
       }

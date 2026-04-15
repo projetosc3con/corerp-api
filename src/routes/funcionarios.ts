@@ -14,7 +14,7 @@ router.post('/', authenticate, authorize('funcionarios.create'), async (req, res
   }
 
   try {
-    const { error } = await supabase.from('funcionarios').insert(data);
+    const { error } = await supabase.from('Funcionarios').insert(data);
     if (error) throw error;
     res.status(201).json({ message: 'Funcionário criado com sucesso' });
   } catch (error) {
@@ -25,7 +25,7 @@ router.post('/', authenticate, authorize('funcionarios.create'), async (req, res
 // Listar funcionários
 router.get('/', authenticate, authorize('funcionarios.read'), async (_req, res) => {
   try {
-    const { data: funcionarios, error } = await supabase.from('funcionarios').select('*');
+    const { data: funcionarios, error } = await supabase.from('Funcionarios').select('*');
     if (error) throw error;
     res.json(funcionarios || []);
   } catch (error) {
@@ -38,7 +38,7 @@ router.get('/:id', authenticate, authorize('funcionarios.read'), async (req, res
   const { id } = req.params;
   try {
     // using id instead of uid per interfaces rewrite
-    const { data: doc, error } = await supabase.from('funcionarios').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Funcionarios').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Funcionário não encontrado' });
     res.json(doc);
   } catch (error) {
@@ -51,7 +51,7 @@ router.put('/:id', authenticate, authorize('funcionarios.update'), async (req, r
   const { id } = req.params;
   const data = req.body as Partial<Funcionario>;
   try {
-    const { error } = await supabase.from('funcionarios').update(data).eq('id', id);
+    const { error } = await supabase.from('Funcionarios').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Funcionário atualizado com sucesso' });
   } catch (error) {
@@ -63,7 +63,7 @@ router.put('/:id', authenticate, authorize('funcionarios.update'), async (req, r
 router.delete('/:id', authenticate, authorize('funcionarios.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('funcionarios').delete().eq('id', id);
+    const { error } = await supabase.from('Funcionarios').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Funcionário deletado com sucesso' });
   } catch (error) {

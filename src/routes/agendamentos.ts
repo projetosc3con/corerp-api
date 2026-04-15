@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const { data: ref, error } = await supabase.from('agendamentos').insert(data).select().single();
+    const { data: ref, error } = await supabase.from('Agendamentos').insert(data).select().single();
     if (error) throw error;
     res.status(201).json({ message: 'Agendamento criado com sucesso', id: ref.id });
   } catch (error) {
@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
 // Listar agendamentos
 router.get('/', authenticate, authorize('agenda.read'), async (req, res) => {
   try {
-    const { data: agendamentos, error } = await supabase.from('agendamentos').select('*');
+    const { data: agendamentos, error } = await supabase.from('Agendamentos').select('*');
     if (error) throw error;
     res.json(agendamentos || []);
   } catch (error) {
@@ -36,7 +36,7 @@ router.get('/', authenticate, authorize('agenda.read'), async (req, res) => {
 router.get('/cliente/:id', authenticate, async (req, res) => {
     const { id } = req.params;
     try {
-        const { data: agendamentos, error } = await supabase.from('agendamentos').select('*').eq('cliente', id);
+        const { data: agendamentos, error } = await supabase.from('Agendamentos').select('*').eq('cliente', id);
         if (error) throw error;
         res.json(agendamentos || []);
     } catch (error) {
@@ -48,7 +48,7 @@ router.get('/cliente/:id', authenticate, async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const { data: doc, error } = await supabase.from('agendamentos').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Agendamentos').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Agendamento não encontrado' });
     res.json(doc);
   } catch (error) {
@@ -61,7 +61,7 @@ router.put('/:id', authenticate, authorize('agenda.update'), async (req, res) =>
   const { id } = req.params;
   const data = req.body as Partial<Agendamento>;
   try {
-    const { error } = await supabase.from('agendamentos').update(data).eq('id', id);
+    const { error } = await supabase.from('Agendamentos').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Agendamento atualizado com sucesso' });
   } catch (error) {
@@ -73,7 +73,7 @@ router.put('/:id', authenticate, authorize('agenda.update'), async (req, res) =>
 router.delete('/:id', authenticate, authorize('agenda.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('agendamentos').delete().eq('id', id);
+    const { error } = await supabase.from('Agendamentos').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Agendamento deletado com sucesso' });
   } catch (error) {

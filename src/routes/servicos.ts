@@ -14,7 +14,7 @@ router.post('/', authenticate, authorize('servicos.create'), async (req, res) =>
   }
 
   try {
-    const { data: ref, error } = await supabase.from('servicos').insert(data).select().single();
+    const { data: ref, error } = await supabase.from('Servicos').insert(data).select().single();
     if (error) throw error;
     res.status(201).json({ message: 'Serviço criado com sucesso', id: ref.id });
   } catch (error) {
@@ -25,7 +25,7 @@ router.post('/', authenticate, authorize('servicos.create'), async (req, res) =>
 // Listar serviços (publico)
 router.get('/', async (req, res) => {
   try {
-    const { data: servicos, error } = await supabase.from('servicos').select('*');
+    const { data: servicos, error } = await supabase.from('Servicos').select('*');
     if (error) throw error;
     res.json(servicos || []);
   } catch (error) {
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const { data: doc, error } = await supabase.from('servicos').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Servicos').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Serviço não encontrado' });
     res.json(doc);
   } catch (error) {
@@ -50,7 +50,7 @@ router.put('/:id', authenticate, authorize('servicos.update'), async (req, res) 
   const { id } = req.params;
   const data = req.body as Partial<Servico>;
   try {
-    const { error } = await supabase.from('servicos').update(data).eq('id', id);
+    const { error } = await supabase.from('Servicos').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Serviço atualizado com sucesso' });
   } catch (error) {
@@ -62,7 +62,7 @@ router.put('/:id', authenticate, authorize('servicos.update'), async (req, res) 
 router.delete('/:id', authenticate, authorize('servicos.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('servicos').delete().eq('id', id);
+    const { error } = await supabase.from('Servicos').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Serviço deletado com sucesso' });
   } catch (error) {

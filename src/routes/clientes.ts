@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
 
     // Assuming we use email as id or standard default auto increment.
     // If id logic was setting email as doc ID in firestore, we might need to set it as PK or just insert.
-    const { error } = await supabase.from('clientes').insert(novoCliente);
+    const { error } = await supabase.from('Clientes').insert(novoCliente);
     if (error) throw error;
 
     return res.status(201).json({ message: 'Cliente cadastrado com sucesso!', cliente: novoCliente });
@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const { data: doc, error } = await supabase.from('clientes').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Clientes').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Cliente não encontrado' });
     res.json(doc);
   } catch (error) {
@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
 // Listar clientes
 router.get('/', authenticate, authorize('clientes.read'), async (req, res) => {
   try {
-    const { data: clientes, error } = await supabase.from('clientes').select('*');
+    const { data: clientes, error } = await supabase.from('Clientes').select('*');
     if (error) throw error;
     res.json(clientes || []);
   } catch (error) {
@@ -64,7 +64,7 @@ router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const data = req.body as Partial<Cliente>;
   try {
-    const { error } = await supabase.from('clientes').update(data).eq('id', id);
+    const { error } = await supabase.from('Clientes').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Cliente atualizado com sucesso' });
   } catch (error) {
@@ -76,7 +76,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', authenticate, authorize('clientes.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('clientes').delete().eq('id', id);
+    const { error } = await supabase.from('Clientes').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Cliente deletado com sucesso' });
   } catch (error) {

@@ -14,7 +14,7 @@ router.post('/', authenticate, authorize('categorias.create'), async (req, res) 
   }
 
   try {
-    const { error } = await supabase.from('categorias').insert(data);
+    const { error } = await supabase.from('Categorias').insert(data);
     if (error) throw error;
     res.status(201).json({ message: 'Categoria criada com sucesso' });
   } catch (error) {
@@ -25,7 +25,7 @@ router.post('/', authenticate, authorize('categorias.create'), async (req, res) 
 // Listar categorias (publica)
 router.get('/', async (req, res) => {
   try {
-    const { data: categorias, error } = await supabase.from('categorias').select('*');
+    const { data: categorias, error } = await supabase.from('Categorias').select('*');
     if (error) throw error;
     res.json(categorias || []);
   } catch (error) {
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const { data: doc, error } = await supabase.from('categorias').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Categorias').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Categoria não encontrada' });
     res.json(doc);
   } catch (error) {
@@ -50,7 +50,7 @@ router.put('/:id', authenticate, authorize('categorias.update'), async (req, res
   const { id } = req.params;
   const data = req.body as Partial<Categoria>;
   try {
-    const { error } = await supabase.from('categorias').update(data).eq('id', id);
+    const { error } = await supabase.from('Categorias').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Categoria atualizada com sucesso' });
   } catch (error) {
@@ -62,7 +62,7 @@ router.put('/:id', authenticate, authorize('categorias.update'), async (req, res
 router.delete('/:id', authenticate, authorize('categorias.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('categorias').delete().eq('id', id);
+    const { error } = await supabase.from('Categorias').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Categoria deletada com sucesso' });
   } catch (error) {

@@ -11,10 +11,10 @@ const router = Router();
 // Obter dados marketplace
 router.get('/landing', async (req, res) => {
   try {
-    const { data, error: mError } = await supabase.from('marketplace').select('*').eq('id', 'config').single();
+    const { data, error: mError } = await supabase.from('MarketLandings').select('*').eq('id', 'config').single();
     
-    const { data: cData, error: cError } = await supabase.from('categorias').select('*');
-    const { data: sData, error: sError } = await supabase.from('servicos').select('*');
+    const { data: cData, error: cError } = await supabase.from('Categorias').select('*');
+    const { data: sData, error: sError } = await supabase.from('Servicos').select('*');
     
     if (mError || cError || sError) throw new Error('Error loading marketplace data');
     
@@ -28,7 +28,7 @@ router.get('/landing', async (req, res) => {
 router.put('/landing', authenticate, authorize('marketplace.update'), async (req, res) => {
   const data = req.body as Partial<MarketLanding>;
   try {
-    const { error } = await supabase.from('marketplace').update(data).eq('id', 'config');
+    const { error } = await supabase.from('MarketLandings').update(data).eq('id', 'config');
     if (error) throw error;
     res.json({ message: 'Marketplace atualizado com sucesso' });
   } catch (error) {
@@ -39,7 +39,7 @@ router.put('/landing', authenticate, authorize('marketplace.update'), async (req
 //Obter dados sobre
 router.get('/about', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('marketplace').select('*').eq('id', 'about').single();
+    const { data, error } = await supabase.from('MarketLandings').select('*').eq('id', 'about').single();
     if (error) throw error;
     res.json(data);
   } catch (error) {
@@ -50,7 +50,7 @@ router.get('/about', async (req, res) => {
 router.put('/about', authenticate, authorize('marketplace.update'), async (req, res) => {
   const data = req.body as Partial<AboutUs>;
   try {
-    const { error } = await supabase.from('marketplace').update(data).eq('id', 'about');
+    const { error } = await supabase.from('MarketLandings').update(data).eq('id', 'about');
     if (error) throw error;
     res.json({ message: 'Marketplace atualizado com sucesso' });
   } catch (error) {
@@ -61,7 +61,7 @@ router.put('/about', authenticate, authorize('marketplace.update'), async (req, 
 //Obter dados contato
 router.get('/contact', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('marketplace').select('*').eq('id', 'contact').single();
+    const { data, error } = await supabase.from('MarketLandings').select('*').eq('id', 'contact').single();
     if (error) throw error;
     res.json(data);
   } catch (error) {
@@ -72,7 +72,7 @@ router.get('/contact', async (req, res) => {
 router.put('/contact', authenticate, authorize('marketplace.update'), async (req, res) => {
   const data = req.body as Partial<Contact>;
   try {
-    const { error } = await supabase.from('marketplace').update(data).eq('id', 'contact');
+    const { error } = await supabase.from('MarketLandings').update(data).eq('id', 'contact');
     if (error) throw error;
     res.json({ message: 'Marketplace atualizado com sucesso' });
   } catch (error) {

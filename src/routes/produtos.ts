@@ -14,7 +14,7 @@ router.post('/', authenticate, authorize('estoque.create'), async (req, res) => 
   }
 
   try {
-    const { data: ref, error } = await supabase.from('estoque').insert(data).select().single();
+    const { data: ref, error } = await supabase.from('Produtos').insert(data).select().single();
     if (error) throw error;
     res.status(201).json({ message: 'Produto criado com sucesso', id: ref.id });
   } catch (error) {
@@ -25,7 +25,7 @@ router.post('/', authenticate, authorize('estoque.create'), async (req, res) => 
 // Listar produtos (publico)
 router.get('/', async (req, res) => {
   try {
-    const { data: produtos, error } = await supabase.from('estoque').select('*');
+    const { data: produtos, error } = await supabase.from('Produtos').select('*');
     if (error) throw error;
     res.json(produtos || []);
   } catch (error) {
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', authenticate, authorize('estoque.read'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { data: doc, error } = await supabase.from('estoque').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Produtos').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Produto não encontrado' });
     res.json(doc);
   } catch (error) {
@@ -50,7 +50,7 @@ router.put('/:id', authenticate, authorize('estoque.update'), async (req, res) =
   const { id } = req.params;
   const data = req.body as Partial<Produto>;
   try {
-    const { error } = await supabase.from('estoque').update(data).eq('id', id);
+    const { error } = await supabase.from('Produtos').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Produto atualizado com sucesso' });
   } catch (error) {
@@ -62,7 +62,7 @@ router.put('/:id', authenticate, authorize('estoque.update'), async (req, res) =
 router.delete('/:id', authenticate, authorize('estoque.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('estoque').delete().eq('id', id);
+    const { error } = await supabase.from('Produtos').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Produto deletado com sucesso' });
   } catch (error) {

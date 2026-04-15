@@ -14,7 +14,7 @@ router.post('/', authenticate, authorize('fornecedores.create'), async (req, res
   }
 
   try {
-    const { error } = await supabase.from('fornecedores').insert(data);
+    const { error } = await supabase.from('Fornecedores').insert(data);
     if (error) throw error;
     res.status(201).json({ message: 'Fornecedor criado com sucesso' });
   } catch (error) {
@@ -25,7 +25,7 @@ router.post('/', authenticate, authorize('fornecedores.create'), async (req, res
 // Listar fornecedores
 router.get('/', async (req, res) => {
   try {
-    const { data: fornecedores, error } = await supabase.from('fornecedores').select('*');
+    const { data: fornecedores, error } = await supabase.from('Fornecedores').select('*');
     if (error) throw error;
     res.json(fornecedores || []);
   } catch (error) {
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', authenticate, authorize('fornecedores.read'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { data: doc, error } = await supabase.from('fornecedores').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Fornecedores').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Fornecedor não encontrado' });
     res.json(doc);
   } catch (error) {
@@ -50,7 +50,7 @@ router.put('/:id', authenticate, authorize('fornecedores.update'), async (req, r
   const { id } = req.params;
   const data = req.body as Partial<Fornecedor>;
   try {
-    const { error } = await supabase.from('fornecedores').update(data).eq('id', id);
+    const { error } = await supabase.from('Fornecedores').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Fornecedor atualizado com sucesso' });
   } catch (error) {
@@ -62,7 +62,7 @@ router.put('/:id', authenticate, authorize('fornecedores.update'), async (req, r
 router.delete('/:id', authenticate, authorize('fornecedores.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('fornecedores').delete().eq('id', id);
+    const { error } = await supabase.from('Fornecedores').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Fornecedor deletado com sucesso' });
   } catch (error) {

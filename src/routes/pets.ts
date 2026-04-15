@@ -14,7 +14,7 @@ router.post('/', authenticate, async (req, res) => {
   }
 
   try {
-    const { data: ref, error } = await supabase.from('pets').insert(data).select().single();
+    const { data: ref, error } = await supabase.from('Pets').insert(data).select().single();
     if (error) throw error;
     res.status(201).json({ message: 'Pet criado com sucesso', id: ref.id });
   } catch (error) {
@@ -26,7 +26,7 @@ router.post('/', authenticate, async (req, res) => {
 router.get('/cliente/:id', authenticate, async (req, res) => {
     const { id } = req.params;
     try {
-        const { data: pets, error } = await supabase.from('pets').select('*').eq('idCliente', id);
+        const { data: pets, error } = await supabase.from('Pets').select('*').eq('idCliente', id);
         if (error) throw error;
         res.json(pets || []);
   } catch (error) {
@@ -37,7 +37,7 @@ router.get('/cliente/:id', authenticate, async (req, res) => {
 // Buscar pet geral
 router.get('/', authenticate, authorize('pets.read'), async (req, res) => {
   try {
-    const { data: pets, error } = await supabase.from('pets').select('*');
+    const { data: pets, error } = await supabase.from('Pets').select('*');
     if (error) throw error;
     res.json(pets || []);
   } catch (error) {
@@ -49,7 +49,7 @@ router.get('/', authenticate, authorize('pets.read'), async (req, res) => {
 router.get('/:id', authenticate, authorize('pets.read'), async (req, res) => {
   const { id } = req.params;
   try {
-    const { data: doc, error } = await supabase.from('pets').select('*').eq('id', id).single();
+    const { data: doc, error } = await supabase.from('Pets').select('*').eq('id', id).single();
     if (error || !doc) return res.status(404).json({ error: 'Pet não encontrado' });
     res.json(doc);
   } catch (error) {
@@ -62,7 +62,7 @@ router.put('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
   const data = req.body as Partial<Pet>;
   try {
-    const { error } = await supabase.from('pets').update(data).eq('id', id);
+    const { error } = await supabase.from('Pets').update(data).eq('id', id);
     if (error) throw error;
     res.json({ message: 'Pet atualizado com sucesso' });
   } catch (error) {
@@ -74,7 +74,7 @@ router.put('/:id', authenticate, async (req, res) => {
 router.delete('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
   try {
-    const { error } = await supabase.from('pets').delete().eq('id', id);
+    const { error } = await supabase.from('Pets').delete().eq('id', id);
     if (error) throw error;
     res.json({ message: 'Pet deletado com sucesso' });
   } catch (error) {
