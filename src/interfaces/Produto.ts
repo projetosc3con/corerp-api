@@ -1,4 +1,5 @@
 export interface Produto {
+    created_at?: string;
     id?: string;
     barCode: string;
     sku: string;

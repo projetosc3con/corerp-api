@@ -1,13 +1,10 @@
-// src/routes/categorias.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { Categoria } from '../interfaces/Categoria';
 
 const router = Router();
-
-const collection = admin.firestore().collection('categorias');
 
 // Criar categoria
 router.post('/', authenticate, authorize('categorias.create'), async (req, res) => {
@@ -17,7 +14,8 @@ router.post('/', authenticate, authorize('categorias.create'), async (req, res) 
   }
 
   try {
-    const ref = await collection.add(data);
+    const { error } = await supabase.from('categorias').insert(data);
+    if (error) throw error;
     res.status(201).json({ message: 'Categoria criada com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar categoria', details: error });
@@ -27,12 +25,9 @@ router.post('/', authenticate, authorize('categorias.create'), async (req, res) 
 // Listar categorias (publica)
 router.get('/', async (req, res) => {
   try {
-    const snapshot = await collection.get();
-    const categorias: Categoria[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Categoria, 'id'>),
-        }));
-    res.json(categorias);
+    const { data: categorias, error } = await supabase.from('categorias').select('*');
+    if (error) throw error;
+    res.json(categorias || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar categorias', details: error });
   }
@@ -42,9 +37,9 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const doc = await collection.doc(id).get();
-    if (!doc.exists) return res.status(404).json({ error: 'Categoria não encontrada' });
-    res.json({ id: doc.id, ...doc.data() });
+    const { data: doc, error } = await supabase.from('categorias').select('*').eq('id', id).single();
+    if (error || !doc) return res.status(404).json({ error: 'Categoria não encontrada' });
+    res.json(doc);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar categoria', details: error });
   }
@@ -55,7 +50,8 @@ router.put('/:id', authenticate, authorize('categorias.update'), async (req, res
   const { id } = req.params;
   const data = req.body as Partial<Categoria>;
   try {
-    await collection.doc(id).update(data);
+    const { error } = await supabase.from('categorias').update(data).eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Categoria atualizada com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar categoria', details: error });
@@ -66,7 +62,8 @@ router.put('/:id', authenticate, authorize('categorias.update'), async (req, res
 router.delete('/:id', authenticate, authorize('categorias.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    await collection.doc(id).delete();
+    const { error } = await supabase.from('categorias').delete().eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Categoria deletada com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar categoria', details: error });

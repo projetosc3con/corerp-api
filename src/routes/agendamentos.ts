@@ -1,13 +1,10 @@
-// src/routes/agendamentos.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { Agendamento } from '../interfaces/Agendamento';
 
 const router = Router();
-
-const collection = admin.firestore().collection('agendamentos');
 
 // Criar agendamento (publico)
 router.post('/', async (req, res) => {
@@ -17,8 +14,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const ref = await collection.add(data);
-    res.status(201).json({ message: 'Agendamento criado com sucesso' });
+    const { data: ref, error } = await supabase.from('agendamentos').insert(data).select().single();
+    if (error) throw error;
+    res.status(201).json({ message: 'Agendamento criado com sucesso', id: ref.id });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar agendamento', details: error });
   }
@@ -27,12 +25,9 @@ router.post('/', async (req, res) => {
 // Listar agendamentos
 router.get('/', authenticate, authorize('agenda.read'), async (req, res) => {
   try {
-    const snapshot = await collection.get();
-    const agendamentos: Agendamento[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Agendamento, 'id'>),
-        }));
-    res.json(agendamentos);
+    const { data: agendamentos, error } = await supabase.from('agendamentos').select('*');
+    if (error) throw error;
+    res.json(agendamentos || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar agendamentos', details: error });
   }
@@ -41,12 +36,9 @@ router.get('/', authenticate, authorize('agenda.read'), async (req, res) => {
 router.get('/cliente/:id', authenticate, async (req, res) => {
     const { id } = req.params;
     try {
-        const snapshot = await collection.where('cliente', '==', id).get();
-        const agendamentos: Agendamento[] = snapshot.docs.map(doc => ({
-                  id: doc.id,
-                  ...(doc.data() as Omit<Agendamento, 'id'>),
-                }));
-            res.json(agendamentos);
+        const { data: agendamentos, error } = await supabase.from('agendamentos').select('*').eq('cliente', id);
+        if (error) throw error;
+        res.json(agendamentos || []);
     } catch (error) {
         res.status(500).json({ error: 'Erro ao listar agendamentos', details: error });
     }
@@ -56,11 +48,11 @@ router.get('/cliente/:id', authenticate, async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const doc = await collection.doc(id).get();
-    if (!doc.exists) return res.status(404).json({ error: 'Categoria não encontrada' });
-    res.json({ id: doc.id, ...doc.data() });
+    const { data: doc, error } = await supabase.from('agendamentos').select('*').eq('id', id).single();
+    if (error || !doc) return res.status(404).json({ error: 'Agendamento não encontrado' });
+    res.json(doc);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar categoria', details: error });
+    res.status(500).json({ error: 'Erro ao buscar agendamento', details: error });
   }
 });
 
@@ -69,7 +61,8 @@ router.put('/:id', authenticate, authorize('agenda.update'), async (req, res) =>
   const { id } = req.params;
   const data = req.body as Partial<Agendamento>;
   try {
-    await collection.doc(id).update(data);
+    const { error } = await supabase.from('agendamentos').update(data).eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Agendamento atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar agendamento', details: error });
@@ -80,7 +73,8 @@ router.put('/:id', authenticate, authorize('agenda.update'), async (req, res) =>
 router.delete('/:id', authenticate, authorize('agenda.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    await collection.doc(id).delete();
+    const { error } = await supabase.from('agendamentos').delete().eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Agendamento deletado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar agendamento', details: error });

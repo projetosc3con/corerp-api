@@ -1,4 +1,5 @@
 export interface Cliente {
+    created_at?: string;
     id: string;
     nome: string;
     cpf: string;

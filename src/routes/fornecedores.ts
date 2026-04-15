@@ -1,13 +1,10 @@
-// src/routes/fornecedores.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { Fornecedor } from '../interfaces/Fornecedor';
 
 const router = Router();
-
-const collection = admin.firestore().collection('fornecedores');
 
 // Criar fornecedor
 router.post('/', authenticate, authorize('fornecedores.create'), async (req, res) => {
@@ -17,7 +14,8 @@ router.post('/', authenticate, authorize('fornecedores.create'), async (req, res
   }
 
   try {
-    const ref = await collection.add(data);
+    const { error } = await supabase.from('fornecedores').insert(data);
+    if (error) throw error;
     res.status(201).json({ message: 'Fornecedor criado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar fornecedor', details: error });
@@ -27,12 +25,9 @@ router.post('/', authenticate, authorize('fornecedores.create'), async (req, res
 // Listar fornecedores
 router.get('/', async (req, res) => {
   try {
-    const snapshot = await collection.get();
-    const fornecedores: Fornecedor[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Fornecedor, 'id'>),
-        }));
-    res.json(fornecedores);
+    const { data: fornecedores, error } = await supabase.from('fornecedores').select('*');
+    if (error) throw error;
+    res.json(fornecedores || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar fornecedores', details: error });
   }
@@ -42,9 +37,9 @@ router.get('/', async (req, res) => {
 router.get('/:id', authenticate, authorize('fornecedores.read'), async (req, res) => {
   const { id } = req.params;
   try {
-    const doc = await collection.doc(id).get();
-    if (!doc.exists) return res.status(404).json({ error: 'Fornecedor não encontrado' });
-    res.json({ id: doc.id, ...doc.data() });
+    const { data: doc, error } = await supabase.from('fornecedores').select('*').eq('id', id).single();
+    if (error || !doc) return res.status(404).json({ error: 'Fornecedor não encontrado' });
+    res.json(doc);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar fornecedor', details: error });
   }
@@ -55,7 +50,8 @@ router.put('/:id', authenticate, authorize('fornecedores.update'), async (req, r
   const { id } = req.params;
   const data = req.body as Partial<Fornecedor>;
   try {
-    await collection.doc(id).update(data);
+    const { error } = await supabase.from('fornecedores').update(data).eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Fornecedor atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar fornecedor', details: error });
@@ -66,7 +62,8 @@ router.put('/:id', authenticate, authorize('fornecedores.update'), async (req, r
 router.delete('/:id', authenticate, authorize('fornecedores.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    await collection.doc(id).delete();
+    const { error } = await supabase.from('fornecedores').delete().eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Fornecedor deletado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar fornecedor', details: error });

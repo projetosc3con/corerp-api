@@ -1,13 +1,10 @@
-// src/routes/produtos.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { Produto } from '../interfaces/Produto';
 
 const router = Router();
-
-const collection = admin.firestore().collection('estoque');
 
 // Criar produto
 router.post('/', authenticate, authorize('estoque.create'), async (req, res) => {
@@ -17,7 +14,8 @@ router.post('/', authenticate, authorize('estoque.create'), async (req, res) => 
   }
 
   try {
-    const ref = await collection.add(data);
+    const { data: ref, error } = await supabase.from('estoque').insert(data).select().single();
+    if (error) throw error;
     res.status(201).json({ message: 'Produto criado com sucesso', id: ref.id });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar produto', details: error });
@@ -27,12 +25,9 @@ router.post('/', authenticate, authorize('estoque.create'), async (req, res) => 
 // Listar produtos (publico)
 router.get('/', async (req, res) => {
   try {
-    const snapshot = await collection.get();
-    const produtos: Produto[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Produto, 'id'>),
-        }));
-    res.json(produtos);
+    const { data: produtos, error } = await supabase.from('estoque').select('*');
+    if (error) throw error;
+    res.json(produtos || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar produtos', details: error });
   }
@@ -42,9 +37,9 @@ router.get('/', async (req, res) => {
 router.get('/:id', authenticate, authorize('estoque.read'), async (req, res) => {
   const { id } = req.params;
   try {
-    const doc = await collection.doc(id).get();
-    if (!doc.exists) return res.status(404).json({ error: 'Produto não encontrado' });
-    res.json({ id: doc.id, ...doc.data() });
+    const { data: doc, error } = await supabase.from('estoque').select('*').eq('id', id).single();
+    if (error || !doc) return res.status(404).json({ error: 'Produto não encontrado' });
+    res.json(doc);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar produto', details: error });
   }
@@ -55,7 +50,8 @@ router.put('/:id', authenticate, authorize('estoque.update'), async (req, res) =
   const { id } = req.params;
   const data = req.body as Partial<Produto>;
   try {
-    await collection.doc(id).update(data);
+    const { error } = await supabase.from('estoque').update(data).eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Produto atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar produto', details: error });
@@ -66,7 +62,8 @@ router.put('/:id', authenticate, authorize('estoque.update'), async (req, res) =
 router.delete('/:id', authenticate, authorize('estoque.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    await collection.doc(id).delete();
+    const { error } = await supabase.from('estoque').delete().eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Produto deletado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar produto', details: error });

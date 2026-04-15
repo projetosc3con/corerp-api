@@ -2,6 +2,7 @@ import { Categoria } from "./Categoria";
 import { Servico } from "./Servico";
 
 export interface MarketLanding {
+    created_at?: string;
     pageTitle: string;
     banners: string[] | null;
     destaques: ProdutoMarketLanding[];
@@ -20,12 +21,14 @@ export type ProdutoMarketLanding = {
 }
 
 export interface AboutUs {
+    created_at?: string;
     titleSize: string; // 1rem, 12px, etc...
     contentSize: string; // 1rem, 12px, etc...
     itens: { index: number; title: string; content: string }[];
 }
 
 export interface Contact {
+    created_at?: string;
     email: string;
     telefone: string;
     cep: string;

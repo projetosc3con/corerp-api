@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: admin.auth.DecodedIdToken;
+      user?: any;
     }
   }
 }
@@ -19,8 +19,13 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   const token = authHeader.split(' ')[1];
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken; // UID, e-mail, claims etc.
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return res.status(403).json({ error: 'Token inválido' });
+    }
+    
+    req.user = user;
     next();
   } catch (error) {
     console.error('Erro na verificação do token:', error);

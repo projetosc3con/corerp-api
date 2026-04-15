@@ -1,13 +1,10 @@
-// src/routes/categorias.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { Pet } from '../interfaces/Pet';
 
 const router = Router();
-
-const collection = admin.firestore().collection('pets');
 
 // Criar pet
 router.post('/', authenticate, async (req, res) => {
@@ -17,7 +14,8 @@ router.post('/', authenticate, async (req, res) => {
   }
 
   try {
-    const ref = await collection.add(data);
+    const { data: ref, error } = await supabase.from('pets').insert(data).select().single();
+    if (error) throw error;
     res.status(201).json({ message: 'Pet criado com sucesso', id: ref.id });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar pet', details: error });
@@ -28,12 +26,9 @@ router.post('/', authenticate, async (req, res) => {
 router.get('/cliente/:id', authenticate, async (req, res) => {
     const { id } = req.params;
     try {
-    const snapshot = await collection.where('idCliente', '==', id).get();
-    const pets: Pet[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Pet, 'id'>),
-        }));
-    res.json(pets);
+        const { data: pets, error } = await supabase.from('pets').select('*').eq('idCliente', id);
+        if (error) throw error;
+        res.json(pets || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar pets', details: error });
   }
@@ -42,12 +37,9 @@ router.get('/cliente/:id', authenticate, async (req, res) => {
 // Buscar pet geral
 router.get('/', authenticate, authorize('pets.read'), async (req, res) => {
   try {
-    const snapshot = await collection.get();
-    const pets: Pet[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Pet, 'id'>),
-        }));
-    res.json(pets);
+    const { data: pets, error } = await supabase.from('pets').select('*');
+    if (error) throw error;
+    res.json(pets || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar pets', details: error });
   }
@@ -57,9 +49,9 @@ router.get('/', authenticate, authorize('pets.read'), async (req, res) => {
 router.get('/:id', authenticate, authorize('pets.read'), async (req, res) => {
   const { id } = req.params;
   try {
-    const doc = await collection.doc(id).get();
-    if (!doc.exists) return res.status(404).json({ error: 'Pet não encontrado' });
-    res.json({ id: doc.id, ...doc.data() });
+    const { data: doc, error } = await supabase.from('pets').select('*').eq('id', id).single();
+    if (error || !doc) return res.status(404).json({ error: 'Pet não encontrado' });
+    res.json(doc);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar pet', details: error });
   }
@@ -70,7 +62,8 @@ router.put('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
   const data = req.body as Partial<Pet>;
   try {
-    await collection.doc(id).update(data);
+    const { error } = await supabase.from('pets').update(data).eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Pet atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar pet', details: error });
@@ -81,7 +74,8 @@ router.put('/:id', authenticate, async (req, res) => {
 router.delete('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
   try {
-    await collection.doc(id).delete();
+    const { error } = await supabase.from('pets').delete().eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Pet deletado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar pet', details: error });

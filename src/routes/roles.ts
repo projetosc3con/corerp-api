@@ -1,8 +1,7 @@
-// src/routes/roles.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { Role } from '../interfaces/Role';
 
 const router = Router();
@@ -17,7 +16,8 @@ router.post('/', authenticate, authorize('roles.create'), async (req, res) => {
 
   try {
     const role: Role = { id, name, permissions };
-    await admin.firestore().collection('roles').doc(id).set(role);
+    const { error } = await supabase.from('roles').insert(role);
+    if (error) throw error;
     res.status(201).json({ message: 'Role criada com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao criar role', details: error });
@@ -27,12 +27,9 @@ router.post('/', authenticate, authorize('roles.create'), async (req, res) => {
 // Listar roles
 router.get('/', authenticate, authorize('roles.read'), async (_req, res) => {
   try {
-    const snapshot = await admin.firestore().collection('roles').get();
-    const roles: Role[] = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...(doc.data() as Omit<Role, 'id'>),
-    }));
-    res.json(roles);
+    const { data: roles, error } = await supabase.from('roles').select('*');
+    if (error) throw error;
+    res.json(roles || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar roles', details: error });
   }
@@ -42,18 +39,9 @@ router.get('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const doc = await admin.firestore().collection('roles').doc(id).get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ error: 'Role não encontrada' });
-    }
-
-    const role: Role = {
-      id: doc.id,
-      ...(doc.data() as Omit<Role, 'id'>),
-    };
-
-    res.json(role);
+    const { data: doc, error } = await supabase.from('roles').select('*').eq('id', id).single();
+    if (error || !doc) return res.status(404).json({ error: 'Role não encontrada' });
+    res.json(doc);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar role', details: error });
   }
@@ -65,7 +53,8 @@ router.put('/:id', authenticate, authorize('roles.update'), async (req, res) => 
   const { name, permissions } = req.body as Partial<Role>;
 
   try {
-    await admin.firestore().collection('roles').doc(id).update({ name, permissions });
+    const { error } = await supabase.from('roles').update({ name, permissions }).eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Role atualizada com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar role', details: error });
@@ -76,7 +65,8 @@ router.put('/:id', authenticate, authorize('roles.update'), async (req, res) => 
 router.delete('/:id', authenticate, authorize('roles.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    await admin.firestore().collection('roles').doc(id).delete();
+    const { error } = await supabase.from('roles').delete().eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Role deletada com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar role', details: error });

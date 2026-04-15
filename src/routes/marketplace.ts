@@ -1,33 +1,23 @@
-// src/routes/produtos.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { MarketLanding, AboutUs, Contact } from '../interfaces/MarketLanding';
 import { Categoria } from '../interfaces/Categoria';
 import { Servico } from '../interfaces/Servico';
 
 const router = Router();
 
-const collection = admin.firestore().collection('marketplace');
-
 // Obter dados marketplace
 router.get('/landing', async (req, res) => {
   try {
-    const doc = await collection.doc('config').get()
-    const data = doc.data() as MarketLanding;
-
-    const snapshot = await admin.firestore().collection('categorias').get();
-    const cData: Categoria[] = snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...(doc.data() as Omit<Categoria, 'id'>),
-            }));
+    const { data, error: mError } = await supabase.from('marketplace').select('*').eq('id', 'config').single();
     
-    const servSnap = await admin.firestore().collection('servicos').get();
-    const sData: Servico[] = servSnap.docs.map(doc => ({
-      id: doc.id,
-      ...(doc.data() as Omit<Servico, 'id'>)
-    }));
+    const { data: cData, error: cError } = await supabase.from('categorias').select('*');
+    const { data: sData, error: sError } = await supabase.from('servicos').select('*');
+    
+    if (mError || cError || sError) throw new Error('Error loading marketplace data');
+    
     res.json({ ...data, categorias: cData, servicos: sData });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao carregar marketplace', details: error });
@@ -38,7 +28,8 @@ router.get('/landing', async (req, res) => {
 router.put('/landing', authenticate, authorize('marketplace.update'), async (req, res) => {
   const data = req.body as Partial<MarketLanding>;
   try {
-    await collection.doc('config').update(data);
+    const { error } = await supabase.from('marketplace').update(data).eq('id', 'config');
+    if (error) throw error;
     res.json({ message: 'Marketplace atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar', details: error });
@@ -48,9 +39,8 @@ router.put('/landing', authenticate, authorize('marketplace.update'), async (req
 //Obter dados sobre
 router.get('/about', async (req, res) => {
   try {
-    const doc = await collection.doc('about').get()
-    const data = doc.data() as AboutUs;
-    
+    const { data, error } = await supabase.from('marketplace').select('*').eq('id', 'about').single();
+    if (error) throw error;
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao carregar marketplace', details: error });
@@ -60,7 +50,8 @@ router.get('/about', async (req, res) => {
 router.put('/about', authenticate, authorize('marketplace.update'), async (req, res) => {
   const data = req.body as Partial<AboutUs>;
   try {
-    await collection.doc('about').update(data);
+    const { error } = await supabase.from('marketplace').update(data).eq('id', 'about');
+    if (error) throw error;
     res.json({ message: 'Marketplace atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar', details: error });
@@ -70,9 +61,8 @@ router.put('/about', authenticate, authorize('marketplace.update'), async (req, 
 //Obter dados contato
 router.get('/contact', async (req, res) => {
   try {
-    const doc = await collection.doc('contact').get()
-    const data = doc.data() as Contact;
-    
+    const { data, error } = await supabase.from('marketplace').select('*').eq('id', 'contact').single();
+    if (error) throw error;
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao carregar marketplace', details: error });
@@ -82,7 +72,8 @@ router.get('/contact', async (req, res) => {
 router.put('/contact', authenticate, authorize('marketplace.update'), async (req, res) => {
   const data = req.body as Partial<Contact>;
   try {
-    await collection.doc('contact').update(data);
+    const { error } = await supabase.from('marketplace').update(data).eq('id', 'contact');
+    if (error) throw error;
     res.json({ message: 'Marketplace atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar', details: error });

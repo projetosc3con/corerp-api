@@ -1,7 +1,8 @@
 import { Role } from "./Role";
 
 export interface Funcionario {
-    uid?: string;
+    created_at?: string;
+    id?: string;
     nome: string;
     cpf: string;
     dataNascimento: string;

@@ -1,25 +1,14 @@
 import { Router } from 'express';
 import { Cliente } from '../interfaces/Cliente';
-import { admin } from '../firebase';
+import { supabase } from '../supabase';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
 
 const router = Router();
 
-const collection = admin.firestore().collection('clientes');
-
 router.post('/', async (req, res) => {
   try {
-    const {
-      id,
-      nome,
-      cpf,
-      dataNascimento,
-      telefone,
-      email,
-      endereco,
-      observacoes
-    } = req.body;
+    const { id, nome, cpf, dataNascimento, telefone, email, endereco, observacoes } = req.body;
 
     if (!nome || !cpf || !email ) {
       return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
@@ -36,7 +25,10 @@ router.post('/', async (req, res) => {
       observacoes: observacoes ?? ''
     };
 
-    await collection.doc(email).set(novoCliente);
+    // Assuming we use email as id or standard default auto increment.
+    // If id logic was setting email as doc ID in firestore, we might need to set it as PK or just insert.
+    const { error } = await supabase.from('clientes').insert(novoCliente);
+    if (error) throw error;
 
     return res.status(201).json({ message: 'Cliente cadastrado com sucesso!', cliente: novoCliente });
   } catch (error) {
@@ -48,9 +40,9 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const doc = await collection.doc(id).get();
-    if (!doc.exists) return res.status(404).json({ error: 'Cliente não encontrado' });
-    res.json({ id: doc.id, ...doc.data() });
+    const { data: doc, error } = await supabase.from('clientes').select('*').eq('id', id).single();
+    if (error || !doc) return res.status(404).json({ error: 'Cliente não encontrado' });
+    res.json(doc);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar cliente', details: error });
   }
@@ -59,12 +51,9 @@ router.get('/:id', async (req, res) => {
 // Listar clientes
 router.get('/', authenticate, authorize('clientes.read'), async (req, res) => {
   try {
-    const snapshot = await collection.get();
-    const clientes: Cliente[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as Omit<Cliente, 'id'>),
-        }));
-    res.json(clientes);
+    const { data: clientes, error } = await supabase.from('clientes').select('*');
+    if (error) throw error;
+    res.json(clientes || []);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar clientes', details: error });
   }
@@ -75,18 +64,20 @@ router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const data = req.body as Partial<Cliente>;
   try {
-    await collection.doc(id).update(data);
+    const { error } = await supabase.from('clientes').update(data).eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Cliente atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar cliente', details: error });
   }
 });
 
-// Deletar produto
+// Deletar cliente
 router.delete('/:id', authenticate, authorize('clientes.delete'), async (req, res) => {
   const { id } = req.params;
   try {
-    await collection.doc(id).delete();
+    const { error } = await supabase.from('clientes').delete().eq('id', id);
+    if (error) throw error;
     res.json({ message: 'Cliente deletado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar cliente', details: error });

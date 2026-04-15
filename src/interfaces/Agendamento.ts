@@ -1,4 +1,5 @@
 export interface Agendamento {
+    created_at?: string;
     id?: string;
     cliente: string;
     pet: string;

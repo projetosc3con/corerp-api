@@ -1,4 +1,5 @@
 export interface Pet {
+    created_at?: string;
     id?: string;
     nome: string;
     especie: string;

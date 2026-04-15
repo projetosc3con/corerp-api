@@ -1,40 +1,35 @@
-// src/routes/users.ts
 import { Router } from 'express';
-import { admin } from '../firebase';
 import { authenticate } from '../middlewares/authenticate';
 import { authorize } from '../middlewares/authorize';
+import { supabase } from '../supabase';
 
 const router = Router();
-
-const firestore = admin.firestore();
 
 // Criar novo usuário
 router.post('/', authenticate, authorize('users.create'), async (req, res) => {
   const { email, password, displayName, role, photoURL } = req.body;
   try {
     if (role) {
-      const roleDoc = await firestore.collection('roles').doc(role).get();
-      if (!roleDoc.exists) {
+      const { data: roleDoc, error: roleError } = await supabase.from('roles').select('*').eq('id', role).single();
+      if (roleError || !roleDoc) {
         return res.status(400).json({ error: `Role '${role}' não existe.` });
       }
     }
 
-    const user = await admin.auth().createUser({
+    const { data: user, error } = await supabase.auth.admin.createUser({
       email,
       password,
-      displayName,
-      photoURL
+      user_metadata: { displayName, photoURL, role },
+      email_confirm: true
     });
 
-    if (role) {
-      await admin.auth().setCustomUserClaims(user.uid, { role });
-    }
+    if (error) throw error;
 
     res.status(201).json({
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
+      id: user.user.id,
+      email: user.user.email,
+      displayName: user.user.user_metadata?.displayName,
+      photoURL: user.user.user_metadata?.photoURL,
       role
     });
   } catch (error) {
@@ -42,17 +37,18 @@ router.post('/', authenticate, authorize('users.create'), async (req, res) => {
   }
 });
 
-
 // Listar todos os usuários (limite de 1000)
 router.get('/', authenticate, authorize('users.read'), async (req, res) => {
   try {
-    const list = await admin.auth().listUsers(1000);
+    const { data: list, error } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    if (error) throw error;
+    
     const users = list.users.map((u) => ({
-      uid: u.uid,
+      id: u.id,
       email: u.email,
-      displayName: u.displayName,
-      role: u.customClaims?.role || 'cliente',
-      photoURL: u.photoURL
+      displayName: u.user_metadata?.displayName,
+      role: u.user_metadata?.role || u.app_metadata?.role || 'cliente',
+      photoURL: u.user_metadata?.photoURL
     }));
     res.json(users);
   } catch (error) {
@@ -60,22 +56,24 @@ router.get('/', authenticate, authorize('users.read'), async (req, res) => {
   }
 });
 
-// Buscar usuário por UID
+// Buscar usuário por UID -> Now ID
 router.get('/search', authenticate, authorize('users.read'), async (req, res) => {
-  const { uid } = req.query;
-  if (!uid || typeof uid !== 'string') {
-    return res.status(400).json({ error: 'uid é obrigatório e deve ser uma string' });
+  // changed variable check to id but query param still id
+  const { id } = req.query;
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ error: 'id é obrigatório e deve ser uma string' });
   }
 
   try {
-    const userRecord = await admin.auth().getUser(uid);
+    const { data: userRecord, error } = await supabase.auth.admin.getUserById(id);
+    if (error) throw error;
 
     const user = {
-      uid: userRecord.uid,
-      email: userRecord.email,
-      displayName: userRecord.displayName,
-      role: userRecord.customClaims?.role || 'user',
-      photoURL: userRecord.photoURL || null,
+      id: userRecord.user.id,
+      email: userRecord.user.email,
+      displayName: userRecord.user.user_metadata?.displayName,
+      role: userRecord.user.user_metadata?.role || userRecord.user.app_metadata?.role || 'user',
+      photoURL: userRecord.user.user_metadata?.photoURL || null,
     };
 
     res.json(user);
@@ -85,20 +83,26 @@ router.get('/search', authenticate, authorize('users.read'), async (req, res) =>
 });
 
 // Atualizar perfil e UID no cadastro
-router.patch('/:uid/role', authenticate, async (req, res) => {
+router.patch('/:id/role', authenticate, async (req, res) => {
     const { role, email } = req.body;
-    const { uid } = req.params;
-    if (!uid || !role || !email) {
-      return res.status(400).json({ error: 'uid, role e email são obrigatórios' });
+    const { id } = req.params;
+    if (!id || !role || !email) {
+      return res.status(400).json({ error: 'id, role e email são obrigatórios' });
     }
 
     try {
-      const roleDoc = await firestore.collection('roles').doc(role).get();
-      if (!roleDoc.exists) {
+      const { data: roleDoc, error: roleError } = await supabase.from('roles').select('*').eq('id', role).single();
+      if (roleError || !roleDoc) {
         return res.status(400).json({ error: `Role '${role}' não existe.` });
       }
-      await admin.auth().setCustomUserClaims(uid, { role });
-      await firestore.collection('funcionarios').doc(email).update({ uid });
+      
+      const { error: updateAuthError } = await supabase.auth.admin.updateUserById(id, { user_metadata: { role } });
+      if (updateAuthError) throw updateAuthError;
+
+      // uid was changed to id in the interfaces/db
+      const { error: updateFuncError } = await supabase.from('funcionarios').update({ id }).eq('email', email);
+      if (updateFuncError) throw updateFuncError;
+      
       res.json({ message: 'Usuário funcionário atualizado com sucesso' });
     } catch (error) {
       res.status(400).json({ error: 'Erro ao atualizar funcionário', details: error });
@@ -106,21 +110,29 @@ router.patch('/:uid/role', authenticate, async (req, res) => {
 });
 
 // Atualizar usuário
-router.put('/:uid', authenticate, authorize('users.update'), async (req, res) => {
-  const { uid } = req.params;
+router.put('/:id', authenticate, authorize('users.update'), async (req, res) => {
+  const { id } = req.params;
   const { email, password, displayName, role } = req.body;
   try {
     if (role) {
-      const roleDoc = await firestore.collection('roles').doc(role).get();
-      if (!roleDoc.exists) {
+      const { data: roleDoc, error: roleError } = await supabase.from('roles').select('*').eq('id', role).single();
+      if (roleError || !roleDoc) {
         return res.status(400).json({ error: `Role '${role}' não existe.` });
       }
     }
 
-    await admin.auth().updateUser(uid, { email, password, displayName });
-    if (role) {
-      await admin.auth().setCustomUserClaims(uid, { role });
+    const updateObj: any = {};
+    if (email) updateObj.email = email;
+    if (password) updateObj.password = password;
+    if (displayName !== undefined || role !== undefined) {
+      updateObj.user_metadata = {};
+      if (displayName !== undefined) updateObj.user_metadata.displayName = displayName;
+      if (role !== undefined) updateObj.user_metadata.role = role;
     }
+
+    const { error } = await supabase.auth.admin.updateUserById(id, updateObj);
+    if (error) throw error;
+    
     res.json({ message: 'Usuário atualizado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao atualizar usuário', details: error });
@@ -128,10 +140,11 @@ router.put('/:uid', authenticate, authorize('users.update'), async (req, res) =>
 });
 
 // Deletar usuário
-router.delete('/:uid', authenticate, authorize('users.delete'), async (req, res) => {
-  const { uid } = req.params;
+router.delete('/:id', authenticate, authorize('users.delete'), async (req, res) => {
+  const { id } = req.params;
   try {
-    await admin.auth().deleteUser(uid);
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    if (error) throw error;
     res.json({ message: 'Usuário deletado com sucesso' });
   } catch (error) {
     res.status(400).json({ error: 'Erro ao deletar usuário', details: error });
